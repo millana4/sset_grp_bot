@@ -2,10 +2,11 @@ import asyncio
 import threading
 import logging
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, types
 
 from email_handler import imap_idle_listener
 from config import Config
+from telegram_api import router as chat_member
 
 # Инициализация бота
 bot = Bot(token=Config.BOT_TOKEN)
@@ -14,10 +15,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 dp = Dispatcher()
+dp.include_router(chat_member) # роутер ловит события, когда бота добавляют в группу
 
 async def main():
     me = await bot.get_me()
     logger.info("Telegram bot @%s запущен", me.username)
+
+    await bot.delete_webhook(drop_pending_updates=True) # пропускает апдейты, которые накопились пока бот был офлайн
 
     # Заполняем аккаунты из Config
     accounts = [
@@ -40,7 +44,7 @@ async def main():
         threading.Thread(target=imap_idle_listener, args=(account, loop), daemon=True).start()
 
     # Запускаем Telegram‑бота
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, allowed_updates=["chat_member", "my_chat_member"])
 
 if __name__ == "__main__":
     asyncio.run(main())
