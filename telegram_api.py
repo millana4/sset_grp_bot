@@ -2,6 +2,8 @@ from aiogram import Router
 from aiogram.types import ChatMemberUpdated
 import logging
 
+from seatable_api import write_group_to_db
+
 router = Router()
 
 logging.basicConfig(level=logging.INFO)
@@ -18,7 +20,7 @@ async def on_my_chat_member_updated(event: ChatMemberUpdated):
         chat_id = event.chat.id
         chat_title = event.chat.title  # Название и id группы, в которую добавили бота
 
-        logger.info(f"Бот добавлен в группу: {chat_title} (ID: {chat_id})")
+        logger.info(f"Бот добавлен в группу: {chat_title} (telegram-ID: {chat_id})")
 
-        # Здесь вызываем функцию записи в базу с названием и ID
-        # await write_group_to_db(chat_id, chat_title)
+        # вызываем функцию, которая запишет в базу ID группы в телеграме
+        await write_group_to_db(chat_id, chat_title)
